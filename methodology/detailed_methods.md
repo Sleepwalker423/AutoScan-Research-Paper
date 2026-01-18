@@ -2,308 +2,321 @@
 
 ## Table of Contents
 1. [System Overview](#system-overview)
-2. [Data Collection and Preprocessing](#data-collection-and-preprocessing)
-3. [Text Detection Module](#text-detection-module)
-4. [Speech Bubble Detection Module](#speech-bubble-detection-module)
-5. [Optical Character Recognition](#optical-character-recognition)
-6. [Translation Module](#translation-module)
-7. [Text Rendering and Integration](#text-rendering-and-integration)
-8. [Evaluation Metrics](#evaluation-metrics)
+2. [Background Technologies](#background-technologies)
+3. [Training Data and Annotations](#training-data-and-annotations)
+4. [Speech Bubble Detection (Step 1)](#speech-bubble-detection-step-1)
+5. [Text Extraction (Step 2)](#text-extraction-step-2)
+6. [Translation (Step 3)](#translation-step-3)
+7. [Image Editing (Step 4)](#image-editing-step-4)
+8. [Performance Evaluation](#performance-evaluation)
 
 ---
 
 ## System Overview
 
-AutoScan implements a modular pipeline architecture designed for scalability and accuracy. Each module operates independently but communicates through standardized data structures, enabling parallel processing and easy component replacement.
+AutoScan implements a four-step pipeline for automated manga translation that consolidates state-of-the-art approaches in machine translation while adding novel contributions in font consistency through speech bubble classification.
 
 ### Pipeline Flow
 
 ```
-Input Image → Preprocessing → Detection (Text + Bubbles) → OCR → Translation → Rendering → Output Image
+Input Manga Page → Bubble Detection (YOLOv8) → Text Extraction (Manga OCR) → Translation (DeepL) → Image Editing (Generative Fill) → Translated Output
 ```
 
 ### Technical Stack
-- **Framework**: PyTorch for deep learning models
-- **Image Processing**: OpenCV, PIL
-- **OCR**: Manga-OCR (specialized Japanese OCR)
-- **Translation**: Transformer-based NMT models
-- **Rendering**: Pillow with custom font management
+- **Object Detection**: YOLOv8 by Ultralytics
+- **Annotation Tool**: Roboflow
+- **OCR Engine**: Manga OCR (based on Microsoft's TrOCR)
+- **Translation**: DeepL translator
+- **Image Editing**: Adobe's generative fill tool
+- **Future Automation**: Google's Vertex AI (planned)
 
 ---
 
-## Data Collection and Preprocessing
+## Background Technologies
 
-### Training Data
-- **Dataset Size**: 10,000+ manga pages from publicly available sources
-- **Annotations**: Manual annotations for text regions and bubble boundaries
-- **Augmentation**: Rotation, scaling, brightness/contrast adjustments
-- **Split**: 70% training, 15% validation, 15% testing
+### Object Detection with YOLO
 
-### Preprocessing Steps
+Object detection is an ML classification task that aims to locate specified classes within an image. Traditional methods use a Convolutional Neural Network (CNN) with a sliding window to locate class instances, but this can be relatively time-consuming.
 
-1. **Image Normalization**
-   - Resize to standard resolution (1200px height)
-   - Convert to grayscale for text detection
-   - Preserve color version for final rendering
+By contrast, the **You Only Look Once (YOLO)** models are CNNs that divide the image into a grid where any cell that includes the center of an object must detect that object with a confidence score. This means, as the name implies, that the YOLO model only needs to scan the image once to locate the desired classes within it, making it much faster than other popular methods.
 
-2. **Noise Reduction**
-   - Bilateral filtering to preserve edges
-   - Adaptive histogram equalization for contrast enhancement
+### Optical Character Recognition (OCR)
 
-3. **Orientation Detection**
-   - Automatic detection of page orientation (portrait/landscape)
-   - Rotation correction if needed
+OCR is a method by which an ML model extracts text from an image. There are many potential applications including converting scanned documents to digital format and finding text within manga pages for translation. OCRs may be trained to pick up different alphabets and languages, or even handwritten text.
+
+**OCR Process Steps:**
+1. **Pre-processing**: The OCR reduces noise within the image (sometimes placed after other phases)
+2. **Segmentation**: Detecting text lines within the rest of the image
+3. **Feature extraction**: Combining text lines into feature vectors for classification
+4. **Classification**: Classifying feature vectors into recognizable characters within an alphabet
 
 ---
 
-## Text Detection Module
+## Training Data and Annotations
 
-### Architecture: YOLOv5 Custom Implementation
+### Dataset Specifications
+- **Total Images**: 1,062 manga pages
+- **Annotation Tool**: Roboflow
+- **Method**: Transfer learning applied to YOLOv8
+- **Bubble Classes**: 7 distinct types for font maintenance
 
-We adapted YOLOv5 for manga text detection with the following modifications:
+### Speech Bubble Classes
 
-1. **Input Layer**: 640×640 resolution for optimal speed-accuracy tradeoff
-2. **Backbone**: CSPDarknet53 with manga-specific feature extraction
-3. **Output**: Bounding boxes with confidence scores
+The following bubble types were annotated as different classes to enable font consistency:
 
-### Training Configuration
-```python
-{
-    "epochs": 100,
-    "batch_size": 16,
-    "learning_rate": 0.001,
-    "optimizer": "Adam",
-    "loss_function": "CIoU + Classification Loss"
-}
-```
+1. **Regular speech bubbles** - Standard dialogue
+2. **Shout bubbles** - Emphasized, loud speech
+3. **Narrative bubbles** - Narration/caption boxes
+4. **Happy bubbles** - Joyful or cheerful dialogue
+5. **Evil bubbles** - Sinister or threatening speech
+6. **Thought bubbles** - Internal thoughts
+7. **Scared bubbles** - Frightened or alarmed speech
 
-### Detection Process
+Each bubble type is associated with a specific font style in the translated output to maintain the visual sentiment and context of the original comic.
 
-1. **Multi-scale Detection**: Detect text at 3 different scales
-2. **Non-Maximum Suppression**: IoU threshold of 0.45
-3. **Confidence Filtering**: Minimum confidence of 0.5
-4. **Vertical Text Handling**: Specialized post-processing for vertical Japanese text
+---
+
+## Speech Bubble Detection (Step 1)
+
+### YOLOv8 Implementation
+
+The speech bubble detection utilizes **YOLOv8 by Ultralytics**, adapted for manga-specific bubble classification through transfer learning.
+
+### Training Process
+1. Annotated 1,062 manga pages using Roboflow
+2. Labeled bubbles into 7 classes
+3. Applied transfer learning to YOLOv8
+4. Trained model to detect and classify bubble types
 
 ### Performance Metrics
-- **Precision**: 0.94
-- **Recall**: 0.93
-- **mAP@0.5**: 0.95
-- **FPS**: 45 (GPU inference)
+- **mAP@0.5**: 0.724 (mean Average Precision at IoU 0.50)
+- **Acceptance Criteria**: Predicted box must overlap with ground truth box with IoU ≥ 0.50
+
+### Output Data
+The bubble detection step saves the following for each detected bubble:
+- Bubble class/type (1 of 7 categories)
+- Bounding box coordinates (x, y) for each corner
+- Confidence score
+- Image crop of the bubble region
+
+These coordinates are used in later steps for:
+1. Cropping the bubble for OCR
+2. Targeting the region for text removal
+3. Positioning translated text
 
 ---
 
-## Speech Bubble Detection Module
+## Text Extraction (Step 2)
 
-### Architecture: Mask R-CNN
+### OCR Comparison Study
 
-We employ Mask R-CNN for instance segmentation of speech bubbles:
+Multiple OCR engines were evaluated for Japanese manga text extraction:
 
-1. **Backbone**: ResNet-50-FPN
-2. **RPN**: Region Proposal Network for candidate regions
-3. **Mask Head**: FCN for pixel-level segmentation
+| OCR System | Performance Notes |
+|------------|------------------|
+| **Tesseract** | Available in many languages; gave basic results but insufficient accuracy |
+| **EasyOCR** | Supports 80+ languages; poor results for manga |
+| **Google Cloud Vision (GCV)** | Better than previous; tracked text location with word-level bounding polygons; useful mask generation; slightly lower accuracy than Manga OCR |
+| **Manga OCR** ✓ | Best performance; trained specifically on manga; handles Furigana; works with text on images; Japanese-only |
 
-### Bubble Classification
+### Manga OCR Selection
 
-Detected bubbles are classified into categories:
-- **Speech Bubbles**: Standard dialogue
-- **Thought Bubbles**: Internal monologue (cloud-like borders)
-- **Narrative Boxes**: Rectangular caption boxes
-- **Sound Effects**: Onomatopoeia text (special styling)
+**Manga OCR** was selected as the optimal solution based on:
+- Custom training specifically for manga text
+- Built on Microsoft's TrOCR architecture
+- Superior handling of Japanese characters
+- Ability to recognize Furigana (pronunciation guides)
+- Effective with text overlaid on complex backgrounds
 
-### Segmentation Process
+### Process Flow
+1. Cropped bubble image received from Step 1
+2. Manga OCR processes the image
+3. Japanese text extracted and saved to script file
+4. Constraining input to bubble regions improves accuracy
 
-1. **Proposal Generation**: ~1000 candidate regions per image
-2. **RoI Align**: Feature extraction for each region
-3. **Binary Mask Prediction**: Pixel-wise segmentation
-4. **Contour Extraction**: Polygon approximation for bubble boundaries
+### Limitations and Challenges
 
-### Metrics
-- **Segmentation mAP**: 0.89
-- **Average Precision (Speech)**: 0.92
-- **Average Precision (Thought)**: 0.85
-- **Processing Time**: 150ms per image
+**Furigana Handling**: Experiments show difficulty with Furigana-heavy text where small pronunciation characters may be interpreted as regular speech rather than pronunciation guides.
 
----
-
-## Optical Character Recognition
-
-### Manga OCR Engine
-
-We utilize Manga-OCR, a specialized model trained on manga text:
-
-**Model Details:**
-- **Architecture**: Vision Transformer (ViT)
-- **Training Data**: 500k+ manga text samples
-- **Character Set**: 3000+ Japanese characters (Hiragana, Katakana, Kanji)
-- **Orientation**: Supports both vertical and horizontal text
-
-### OCR Pipeline
-
-1. **Text Region Cropping**: Extract detected text regions
-2. **Orientation Normalization**: Rotate vertical text to horizontal
-3. **Character Recognition**: Process through OCR model
-4. **Post-processing**: 
-   - Confidence filtering
-   - Character sequence validation
-   - Punctuation correction
-
-### Accuracy
-- **Character Recognition Rate**: 0.97
-- **Word Accuracy**: 0.94
-- **Handling Stylized Fonts**: 0.89 (challenging artistic fonts)
+**Text Metrics**: Manga OCR does not track text location metrics within the bubble, which would be helpful for precise masking. Google Cloud Vision provides this feature but with lower overall accuracy. Future work may integrate GCV's mask generation with Manga OCR's superior recognition.
 
 ---
 
-## Translation Module
+## Translation (Step 3)
 
-### Neural Machine Translation
+### DeepL Translation
 
-We employ a Transformer-based model fine-tuned on manga dialogue:
+AutoScan uses **DeepL** for Japanese-to-English translation due to its superior performance compared to alternatives like Google Translate.
 
-**Model Architecture:**
-- **Base Model**: mBART (multilingual BART)
-- **Fine-tuning Data**: 100k manga dialogue pairs (Japanese-English)
-- **Context Window**: 512 tokens
+### Current Implementation
+- **Method**: Bubble-by-bubble translation
+- **Process**: 
+  1. Receive extracted Japanese text from Manga OCR
+  2. Send text to DeepL API
+  3. Receive English translation
+  4. Pass to editing step with bubble metadata
 
-### Translation Features
+### Limitations
+The current bubble-by-bubble approach translates each bubble independently without broader context. This can lead to:
+- Loss of narrative flow
+- Inconsistent pronoun usage
+- Missing contextual nuances
 
-1. **Context-Aware Translation**
-   - Previous dialogue considered for pronoun resolution
-   - Character name consistency tracking
-   - Honorific handling (san, kun, chan, etc.)
+### Future Improvements
+A more accurate translation would incorporate:
+- Complete page or scene scripts
+- Context from previous bubbles
+- Character tracking for consistent voice
+- Bibliographic information (title, author)
+- Longer contextual windows using previous scenes
 
-2. **Cultural Adaptation**
-   - Idiom translation
-   - Cultural reference localization
-   - Sound effect transliteration
-
-3. **Style Preservation**
-   - Informal speech patterns maintained
-   - Character voice consistency
-   - Sentence length consideration for bubble space
-
-### Quality Metrics
-- **BLEU Score**: 0.45 (manga domain)
-- **METEOR Score**: 0.58
-- **Human Evaluation**: 4.2/5.0 average rating
-- **Translation Speed**: 50ms per text region
+Research shows that context-aware translation significantly improves accuracy, as demonstrated by existing literature on manga translation pipelines.
 
 ---
 
-## Text Rendering and Integration
+## Image Editing (Step 4)
 
-### Font Style Matching
+### Adobe Generative Fill
 
-**Approach**: CNN-based font classifier
-- **Input**: Cropped text region
-- **Output**: Font category (Comic Sans, Manga Temple, etc.)
-- **Accuracy**: 0.88
+The editing step uses **Adobe's generative fill tool** to:
+1. Remove Japanese text from bubble regions
+2. Extend backgrounds naturally to fill cleaned areas
+3. Maintain visual consistency with surrounding artwork
 
-### Text Fitting Algorithm
+### Process Flow
+1. **Text Removal**: Target Japanese character regions within bubbles
+2. **Background Extension**: Use generative fill to continue background patterns
+3. **Text Overlay**: Place translated English text in cleaned area
+4. **Font Matching**: Apply appropriate font based on bubble class
+5. **Size Fitting**: Scale text to fit within bounding box constraints
 
-1. **Space Estimation**: Calculate available space in bubble
-2. **Initial Sizing**: Start with estimated font size
-3. **Iterative Fitting**:
-   ```python
-   while text_width > bubble_width or text_height > bubble_height:
-       font_size -= 1
-       recalculate_dimensions()
-   ```
-4. **Multi-line Layout**: Break text into optimal line lengths
+### Font Assignment
 
-### Rendering Process
+Font styles are matched to bubble types to preserve visual meaning:
 
-1. **Font Loading**: Load matched font from library
-2. **Text Rendering**: Generate text with anti-aliasing
-3. **Positioning**: Center text in bubble region
-4. **Background Removal**: Clear original Japanese text
-5. **Alpha Blending**: Composite translated text seamlessly
+| Bubble Type | Font Style | Purpose |
+|-------------|-----------|----------|
+| Regular | Standard comic font | Normal dialogue |
+| Shout | Bold, enlarged | Emphasis, volume |
+| Narrative | Formal, caption-style | Story narration |
+| Happy | Rounded, cheerful | Positive emotion |
+| Evil | Jagged, dramatic | Threatening tone |
+| Thought | Italic, lighter | Internal monologue |
+| Scared | Shaky, uneven | Fear, alarm |
 
-### Quality Enhancements
-- **Edge Smoothing**: Gaussian blur on text edges
-- **Shadow/Outline**: Preserve original text effects
-- **Color Matching**: Match text color to original
+This font consistency maintains the additional visual context that lends meaning to the story, addressing a gap in existing automatic translation systems.
+
+### Current Limitations
+- **Manual Process**: Editing currently requires manual operation
+- **Pixel Residue**: Some Japanese character pixels may remain after cleaning
+- **Text Outside Bubbles**: Requires special handling with generative fill
+
+### Future Automation
+Future versions will automate the editing step using:
+- **Google Vertex AI**: For automated generative fill
+- **Text Masks**: Using GCV's bounding polygon data for precise targeting
+- **Batch Processing**: Automated pipeline for entire pages
 
 ---
 
-## Evaluation Metrics
+## Performance Evaluation
 
-### Overall System Performance
+### Detection Performance
+- **mAP@0.5**: 0.724 for speech bubble detection and classification
+- **Class Coverage**: 7 bubble types successfully distinguished
+- **Dataset**: Evaluated on 1,062 annotated manga pages
 
-**End-to-End Metrics:**
-- **Processing Time**: 3-5 seconds per page (GPU)
-- **Success Rate**: 92% (pages processed without errors)
-- **User Satisfaction**: 4.3/5.0 (readability + aesthetics)
+### OCR Performance
+- **Best System**: Manga OCR outperformed Tesseract, EasyOCR, and Google Cloud Vision
+- **Strengths**: Handles Japanese characters, Furigana, and text on images
+- **Challenges**: Furigana-heavy text occasionally misinterpreted
 
-### Component-Specific Evaluation
+### Translation Quality
+- **System**: DeepL selected for superior performance
+- **Method**: Currently bubble-by-bubble (future: context-aware)
+- **Output**: English translations with maintained font styling
 
-| Module | Metric | Score |
-|--------|--------|-------|
-| Text Detection | mAP@0.5 | 0.95 |
-| Bubble Detection | mAP@0.5 | 0.89 |
-| OCR | Character Accuracy | 0.97 |
-| Translation | BLEU | 0.45 |
-| Overall Quality | Human Rating | 4.2/5.0 |
+### Overall System
+- **Complete Pipeline**: Four-step process from detection to final edited page
+- **Key Innovation**: Font consistency through bubble classification
+- **State-of-the-Art**: Consolidates leading contributions in manga translation
+- **Novel Addition**: Generative fill for background preservation
 
-### Comparison with Manual Translation
+---
 
-| Aspect | Manual | AutoScan | Time Savings |
-|--------|--------|----------|--------------|
-| Detection | 15 min | 1 sec | 99.9% |
-| Translation | 30 min | 2 sec | 99.8% |
-| Editing | 45 min | 2 sec | 99.9% |
-| **Total** | **90 min** | **5 sec** | **99.9%** |
+## Challenges and Future Work
 
-*Note: Manual times represent professional translator workflows*
+### Current Challenges
 
-### Error Analysis
+1. **Context Loss**: Bubble-by-bubble translation lacks narrative context
+2. **Manual Editing**: Generative fill step requires manual operation
+3. **Text Metrics**: Manga OCR doesn't provide location data for masking
+4. **Furigana Handling**: Heavy pronunciation guides can confuse OCR
+5. **Bubble Ordering**: No system for reading order determination
 
-**Common Failure Cases:**
-1. **Highly Stylized Text** (5% of cases)
-   - Artistic fonts with unusual decorations
-   - Handwritten text styles
+### Future Directions
 
-2. **Overlapping Elements** (3% of cases)
-   - Text overlapping with artwork
-   - Multiple bubbles with close proximity
+1. **Bubble Ordering**: Implement methods to order bubbles for contextual script translation
+2. **Character Tracking**: Build character personas for better translation context
+3. **Emotion Analysis**: Combine with character tracking for improved translations
+4. **Automated Generative Fill**: Use Google Vertex AI or similar diffusion models
+5. **Frame Tracking**: Enable scene-level context for translation
+6. **Text Masking**: Integrate GCV's polygon masks with Manga OCR's accuracy
+7. **LLM Integration**: Use large language models for:
+   - Character persona creation
+   - Fan fiction generation
+   - Context-aware translation improvement
 
-3. **Complex Layouts** (2% of cases)
-   - Non-standard bubble shapes
-   - Multi-layered dialogue
+### Research Integration
+
+Future work could incorporate:
+- Longer contextual windows from previous scenes
+- Bibliographic information (title, author) for context
+- Multimodal LLMs for visual and textual context
+- Character emotion analysis for sentiment-aware translation
+- Automated transcript generation for accessibility
 
 ---
 
 ## Reproducibility Notes
 
-### Hardware Requirements
-- **GPU**: NVIDIA RTX 3080 or equivalent (12GB VRAM)
-- **RAM**: 16GB minimum
-- **Storage**: 50GB for models and datasets
+### System Requirements
+- **Object Detection**: YOLOv8 by Ultralytics
+- **Annotation**: Roboflow account and tools
+- **OCR**: Manga OCR installation
+- **Translation**: DeepL API access
+- **Editing**: Adobe Photoshop with generative fill
 
-### Software Dependencies
-```
-python>=3.8
-pytorch>=1.10
-torchvision>=0.11
-opencv-python>=4.5
-pillow>=8.0
-manga-ocr>=0.1
-transformers>=4.15
-```
+### Training Steps
+1. Collect manga page dataset
+2. Annotate bubbles into 7 classes using Roboflow
+3. Apply transfer learning to YOLOv8
+4. Train until achieving acceptable mAP (target: >0.7)
+5. Save model weights and configuration
 
-### Model Checkpoints
-Pre-trained models are available upon request for research purposes.
-
----
-
-## Future Improvements
-
-1. **Generative Font Matching**: Use GANs to generate fonts matching original style exactly
-2. **Multi-Language Support**: Extend to Korean manhwa and Chinese manhua
-3. **Real-Time Processing**: Optimize for mobile devices
-4. **Interactive Correction**: GUI for manual adjustment of problematic translations
-5. **Style Transfer**: Learn original author's text styling automatically
+### Pipeline Execution
+1. Load trained YOLOv8 model
+2. Process manga page through detection
+3. Crop detected bubbles
+4. Run Manga OCR on crops
+5. Translate text with DeepL
+6. Apply generative fill (manual or automated)
+7. Overlay translated text with class-specific fonts
 
 ---
 
-*For implementation details and code, please contact the authors.*
+## Contributions to the Field
+
+AutoScan makes the following contributions to automatic manga translation:
+
+1. **Literature Consolidation**: Summarizes leading approaches in one pipeline
+2. **Font Consistency**: Novel implementation using 7 bubble classes
+3. **Generative AI Integration**: Explores generative fill for cleaning
+4. **Practical Pipeline**: Functional end-to-end system demonstration
+5. **Future Roadmap**: Identifies clear directions for advancement
+
+The system demonstrates that font consistency is a crucial visual element that previous automated translation systems have overlooked, and provides a practical method for preserving this context through bubble classification.
+
+---
+
+*This methodology is based on the AutoScan research paper. For complete details including figures, tables, and experimental results, refer to the full paper at `paper/AutoScan_Paper.pdf`.*

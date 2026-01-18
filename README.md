@@ -4,26 +4,29 @@
 
 ## Overview
 
-This repository contains the research paper and supporting materials for **AutoScan**, an automated system that leverages computer vision and machine learning to streamline manga (Japanese comic book) translation and editing workflows. The system processes Japanese manga pages, detects speech bubbles and text, translates content into English, and seamlessly integrates translations while preserving the original artistic style and font characteristics.
+This repository contains the research paper and supporting materials for **AutoScan**, an automated system that leverages computer vision and machine learning to streamline manga (Japanese comic book) translation and editing workflows. The system processes Japanese manga pages, detects speech bubbles and text, translates content into English, and seamlessly integrates translations while preserving the original artistic style and font characteristics through intelligent bubble classification.
 
 ## Abstract
 
-Manual manga translation is a time-intensive process requiring specialized skills in both language translation and image editing. AutoScan addresses these challenges by introducing an end-to-end automated pipeline that combines:
+As Machine Learning becomes ever more ubiquitous, it offers promise in automating many previously time-consuming processes, including making literature more accessible. This work focuses on the challenges facing the manga community regarding translation and widespread dissemination of thousands of available comics. Not only is translating and editing manga time-consuming, but translated copies are often unofficial and may be subject to individuality in translation as opposed to an official and standard translation.
 
-- **Computer Vision**: Advanced text detection and speech bubble localization
-- **Natural Language Processing**: High-quality Japanese-to-English translation
-- **Image Processing**: Font style preservation and text rendering
+AutoScan addresses these challenges by introducing an end-to-end automated pipeline that:
 
-This research demonstrates significant improvements in translation efficiency while maintaining visual consistency and readability comparable to professional human editing.
+- **Detects Speech Bubbles**: Uses YOLOv8 to classify 7 types of speech bubbles for font consistency
+- **Extracts Text**: Employs Manga OCR for accurate Japanese character recognition
+- **Translates Content**: Utilizes DeepL for high-quality Japanese-to-English translation
+- **Preserves Context**: Maintains varying fonts to preserve visual meaning and sentiment
+
+This research demonstrates improvements in translation efficiency while maintaining the visual context that lends additional meaning to the original story.
 
 ## System Architecture
 
-The AutoScan pipeline consists of four primary modules:
+The AutoScan pipeline consists of four main steps:
 
-1. **Text Detection Module**: Identifies and localizes text regions within manga panels
-2. **Speech Bubble Detection Module**: Segments and classifies speech bubbles and narrative boxes
-3. **Translation Module**: Translates Japanese text to English using neural machine translation
-4. **Text Rendering Module**: Renders translated text with appropriate font styling and positioning
+1. **Speech Bubble Detection**: Locates text within frames using YOLOv8 by Ultralytics
+2. **Text Extraction**: Extracts text from frames using Manga OCR
+3. **Translation**: Translates extracted text using DeepL translator
+4. **Image Editing**: Edits frames to include new translations with appropriate fonts
 
 ## Repository Contents
 
@@ -48,44 +51,58 @@ AutoScan-Research-Paper/
 
 ## Key Features
 
-### 1. Advanced Text Detection
-- Utilizes state-of-the-art object detection models (YOLO/Faster R-CNN)
-- Handles vertical and horizontal text orientations
-- Robust to varying font sizes and artistic styles
+### 1. Speech Bubble Classification
+- Uses YOLOv8 object detection model by Ultralytics
+- Classifies 7 types of speech bubbles to maintain font consistency:
+  - Regular speech bubbles
+  - Shout bubbles
+  - Narrative bubbles
+  - Happy bubbles
+  - Evil bubbles
+  - Thought bubbles
+  - Scared bubbles
+- Achieved 0.724 mAP at IoU 0.50
 
-### 2. Intelligent Speech Bubble Segmentation
-- Semantic segmentation for bubble boundary detection
-- Classification of different bubble types (speech, thought, narrative)
-- Preserves original bubble aesthetics
+### 2. Specialized Japanese OCR
+- Utilizes Manga OCR (based on Microsoft's TrOCR)
+- Trained specifically for manga text recognition
+- Handles Japanese text including Furigana (pronunciation guides)
+- Works well with text on top of images
 
-### 3. Context-Aware Translation
-- Neural machine translation with manga-specific training
-- Handles colloquialisms and cultural references
-- Maintains character voice and tone
+### 3. High-Quality Translation
+- Uses DeepL translator for accurate Japanese-to-English translation
+- Currently translates bubble-by-bubble
+- Future versions will incorporate contextual translation
 
-### 4. Font Style Preservation
-- Font matching algorithms to maintain visual consistency
-- Dynamic text sizing and positioning
-- Anti-aliasing and rendering quality optimization
+### 4. Generative Fill Technology
+- Employs Adobe's generative fill tool for image editing
+- Removes Japanese text and extends backgrounds naturally
+- Future versions will automate using Google's Vertex AI
 
 ## Results
 
 AutoScan demonstrates:
-- **95% accuracy** in text detection across diverse manga styles
-- **90% translation quality** based on BLEU scores
-- **70% reduction** in manual editing time compared to traditional workflows
-- High user satisfaction ratings in readability and visual appeal
+- **0.724 mAP** (mean Average Precision) at IoU 0.50 for speech bubble detection
+- **7 bubble types** classified for font consistency maintenance
+- **Manga OCR** performance superior to Tesseract, EasyOCR, and Google Cloud Vision
+- **Font preservation** through bubble type classification enables context maintenance
+- **Automated translation** pipeline from detection through editing
+
+## Training Data
+
+The system was trained and tested on:
+- **1,062 manga page images** annotated using Roboflow
+- **Transfer learning** applied to adapt YOLOv8 for manga-specific detection
+- **7 speech bubble classes** for font variation tracking
 
 ## Methodology
 
-The system employs a multi-stage processing pipeline:
+The system employs a four-step processing pipeline:
 
-1. **Preprocessing**: Image enhancement and noise reduction
-2. **Detection**: Parallel text and bubble detection using CNN architectures
-3. **OCR**: Japanese text extraction using specialized manga OCR
-4. **Translation**: Context-aware neural machine translation
-5. **Layout Analysis**: Positioning calculation for translated text
-6. **Rendering**: Final composition with style-matched fonts
+1. **Speech Bubble Detection**: YOLOv8 model locates and classifies speech bubbles, saving (x, y) coordinates for each bounding box
+2. **Text Extraction**: Manga OCR extracts Japanese text from cropped bubble regions
+3. **Translation**: DeepL translates the extracted text to English
+4. **Image Editing**: Adobe's generative fill removes Japanese text and extends backgrounds, then translated text is overlaid with appropriate fonts based on bubble type
 
 For detailed methodology, see [methodology/detailed_methods.md](methodology/detailed_methods.md).
 
@@ -101,37 +118,46 @@ Below are sample comparisons showing original Japanese manga pages and their Aut
 
 ## Research Contributions
 
-This research makes the following contributions to the field:
+This research makes the following contributions:
 
-1. **Novel Pipeline**: An integrated end-to-end system specifically designed for manga translation
-2. **Font Preservation**: Advanced techniques for maintaining artistic integrity during translation
-3. **Performance Benchmarks**: Comprehensive evaluation metrics for manga translation systems
-4. **Open Methodology**: Detailed documentation enabling reproducibility and further research
+1. **Literature Summary**: Summarizes leading contributions to automatic manga translation
+2. **AutoScan Pipeline**: Presents an automatic manga translator based on compilation of leading contributions
+3. **Font Consistency**: Implements font consistency using multiple bubble classes (7 types)
+4. **Generative Fill**: Explores generative fill technology for improving the cleaning process before translation
+5. **Future Directions**: Identifies current challenges and future directions for automatic manga translation
 
 ## Author Contributions
 
-This research paper was developed collaboratively:
-- **Original Research**: Concept development and initial implementation
-- **My Contributions**: Reviewed, edited, and wrote significant portions of the paper, including methodology refinement, results analysis, and technical writing improvements
+This research paper was developed by a team from Embry-Riddle Aeronautical University:
+- **Kino Leonhart** - Department of Electrical Engineering and Computer Science
+- **Lynn Vonderhaar** - Department of Electrical Engineering and Computer Science
+- **Juan Couder** - Department of Electrical Engineering and Computer Science
+- **Charles Walker** - Department of Electrical Engineering and Computer Science
+- **Omar Ochoa** - Department of Electrical Engineering and Computer Science
+
+**My Contributions**: I reviewed, edited, and wrote significant portions of the paper, including methodology refinement, results analysis, and technical writing improvements.
 
 ## Future Work
 
-- Expansion to support additional language pairs
-- Integration of style transfer for font generation
-- Real-time processing capabilities
-- Mobile application development
-- Community-driven translation quality improvements
+- Speech bubble ordering for context-aware translation of complete scenes
+- Character tracking to build character personas for better translation context
+- Emotion analysis combined with character tracking for improved translations
+- Automated generative fill using Google's Vertex AI
+- LLM integration for character persona creation and fan fiction generation
+- Improved handling of Furigana-heavy text
+- Text mask tracking for precise cleaning
 
 ## Citation
 
 If you use this research in your work, please cite:
 
 ```bibtex
-@article{autoscan2024,
+@inproceedings{leonhart2024autoscan,
   title={AutoScan: Leveraging Computer Vision to Improve Comic Book Translations and Editing},
-  author={[Author Names]},
-  journal={[Conference/Journal Name]},
-  year={2024}
+  author={Leonhart, Kino and Vonderhaar, Lynn and Couder, Juan and Walker, Charles and Ochoa, Omar},
+  booktitle={IEEE Conference Proceedings},
+  year={2024},
+  organization={Embry-Riddle Aeronautical University}
 }
 ```
 

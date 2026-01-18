@@ -1,88 +1,107 @@
-# Research Paper PDF
+# AutoScan Research Paper
 
-## AutoScan: Leveraging Computer Vision to Improve Comic Book Translations and Editing
+## Complete Paper Available ✅
 
-### About the PDF
+The complete research paper **"AutoScan: Leveraging Computer Vision to Improve Comic Book Translations and Editing"** is available in this directory as **`AutoScan_Paper.pdf`** (6 pages).
 
-The complete research paper in PDF format would typically be included here once the paper is finalized and ready for distribution. The PDF contains the full academic paper with:
+### Authors
+- **Kino Leonhart** - Embry-Riddle Aeronautical University
+- **Lynn Vonderhaar** - Embry-Riddle Aeronautical University
+- **Juan Couder** - Embry-Riddle Aeronautical University
+- **Charles Walker** - Embry-Riddle Aeronautical University
+- **Omar Ochoa** - Embry-Riddle Aeronautical University
 
-- Complete text of all sections
-- High-resolution figures and diagrams
-- Formatted tables and equations
-- Professional layout and typography
-- Proper pagination for citations
-- Full bibliography and references
+### Publication Information
+- **Conference**: IEEE Conference Proceedings
+- **Year**: 2024
+- **Institution**: Department of Electrical Engineering and Computer Science, Embry-Riddle Aeronautical University
+- **Location**: Daytona Beach, USA
 
-### Current Status
+---
 
-This repository contains:
-- ✅ **Paper structure and outline**: See `AutoScan_Paper.md`
-- ✅ **Extended abstract**: See `abstract.md`
-- ✅ **Detailed methodology**: See `../methodology/detailed_methods.md`
-- ✅ **References**: See `references.bib`
-- ⏳ **Full PDF**: To be added upon final publication
+## Paper Contents
 
-### Access Options
+### Abstract
+The paper addresses the challenge of automating manga translation while preserving visual context. It introduces AutoScan, which uses computer vision to maintain font consistency through bubble classification and leverages generative AI for image cleaning.
 
-The full paper PDF may be accessed through:
+### Key Sections
 
-1. **Conference/Journal Publication**: Once published, the PDF will be available through the conference proceedings or journal website
-2. **Open Access**: We intend to make the paper freely available through arXiv.org or similar preprint servers
-3. **Author Request**: For review or research purposes, contact the authors to request a copy
+1. **Introduction** - Motivation for automated manga translation
+2. **Background** - Object Detection (YOLO) and OCR fundamentals
+3. **Existing Solutions** - Survey of related work in manga translation
+4. **Approach** - Four-step AutoScan pipeline:
+   - Speech bubble detection using YOLOv8
+   - Text extraction with Manga OCR
+   - Translation with DeepL
+   - Image editing with generative fill
+5. **Discussion** - Font consistency and generative fill integration
+6. **Challenges and Future Directions** - Character tracking, emotion analysis, bubble ordering
+7. **Conclusion** - Summary of contributions
 
-### Creating the PDF
+### Key Results
+- **0.724 mAP** at IoU 0.50 for speech bubble detection
+- **7 bubble types** classified for font consistency
+- **1,062 training images** annotated with Roboflow
+- **YOLOv8 + Manga OCR + DeepL** pipeline
 
-The PDF version of the paper can be generated from the LaTeX source files (if available) or from the Markdown documentation using tools like:
+---
 
-- **LaTeX**: Standard academic paper compilation
-- **Pandoc**: Convert Markdown to PDF with academic formatting
-- **Academic Templates**: Using conference/journal templates
+## Additional Resources in This Directory
 
-### Why No PDF Yet?
+| File | Description |
+|------|-------------|
+| `AutoScan_Paper.pdf` | Complete 6-page IEEE paper |
+| `abstract.md` | Extended abstract with all sections |
+| `AutoScan_Paper.md` | Paper structure overview |
+| `references.bib` | Complete bibliography (30+ references) |
 
-Possible reasons:
-- Paper is under review (embargo period)
-- Awaiting conference/journal acceptance
-- Final revisions in progress
-- Awaiting copyright clearance from co-authors
-- Being prepared for public release
+---
 
-### How to Generate a PDF from This Repository
+## Figures in the Paper
 
-If you want to create a PDF from the available Markdown content:
+The PDF includes the following figures:
+1. **Figure 1**: YOLO model's detection method
+2. **Figure 2**: AutoScan pipeline diagram
+3. **Figure 3**: YOLO results showing classified bubbles
+4. **Figure 4**: Generative fill for text outside speech bubbles
+5. **Figure 5**: Fully translated page with two font types
 
-```bash
-# Using pandoc (requires installation)
-pandoc paper/abstract.md methodology/detailed_methods.md \
-  --bibliography=paper/references.bib \
-  --output=AutoScan_Paper.pdf \
-  --pdf-engine=xelatex
+And a table comparing OCR systems (Tesseract, EasyOCR, Google Cloud Vision, Manga OCR).
 
-# Or create a combined document first
-cat paper/abstract.md methodology/detailed_methods.md > combined.md
-pandoc combined.md --bibliography=paper/references.bib -o AutoScan_Paper.pdf
+---
+
+## How to Use This Paper
+
+### For Reading
+- Open `AutoScan_Paper.pdf` for the complete paper with figures and formatting
+- Read `abstract.md` for a detailed text summary of all sections
+- Check `../methodology/detailed_methods.md` for expanded technical details
+
+### For Citation
+See the citation format in the main README.md or use the BibTeX entry:
+
+```bibtex
+@inproceedings{leonhart2024autoscan,
+  title={AutoScan: Leveraging Computer Vision to Improve Comic Book Translations and Editing},
+  author={Leonhart, Kino and Vonderhaar, Lynn and Couder, Juan and Walker, Charles and Ochoa, Omar},
+  booktitle={IEEE Conference Proceedings},
+  year={2024},
+  organization={Embry-Riddle Aeronautical University}
+}
 ```
 
-### For Reviewers
-
-If you are a reviewer or collaborator needing access to the full paper:
-1. Contact the repository maintainer
-2. Provide your affiliation and purpose
-3. Agree to confidentiality terms if under review
-4. Receive PDF via secure channel
+### For Research
+- The methodology is reproducible using the details provided
+- Training dataset: 1,062 manga pages annotated via Roboflow
+- Models: YOLOv8 (Ultralytics), Manga OCR, DeepL translator
+- Tools: Adobe Photoshop generative fill (manual), future: Google Vertex AI
 
 ---
 
-## Placeholder Notice
+## Keywords
 
-**📄 This is a placeholder document.** The actual research paper PDF will be added to this directory once it is ready for public distribution or after publication.
-
-For now, please refer to:
-- `abstract.md` for the paper summary
-- `AutoScan_Paper.md` for the paper structure
-- `../methodology/detailed_methods.md` for technical details
-- `../README.md` for the project overview
+machine learning, manga, machine translation, comic book translation, generative artificial intelligence, YOLOv8, optical character recognition, computer vision
 
 ---
 
-*Check back for updates or watch the repository to be notified when the PDF is added.*
+*The PDF file contains the official published version of the paper with IEEE formatting, figures, and complete references.*
