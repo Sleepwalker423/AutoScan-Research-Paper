@@ -167,11 +167,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-We thank our peer reviewers and collaborators for their valuable feedback and contributions to this research. Special thanks to the manga translation community for providing insights into professional workflows and quality standards.
+We thank our peer reviewers and collaborators for their valuable feedback and contributions to this research..
 
 ## Contact
 
-For questions, suggestions, or collaboration opportunities, please open an issue in this repository.
+For questions, suggestions, or collaboration opportunities, please see authors' contact information.
 
 ---
 
