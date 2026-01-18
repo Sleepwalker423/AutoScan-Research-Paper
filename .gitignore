@@ -69,9 +69,8 @@ datasets/
 data/
 
 # Compiled documents
-*.pdf
-# Note: Uncomment above if PDF should not be tracked
-# For research papers, PDF might be intentionally included
+# Note: Research paper PDFs are intentionally tracked
+# *.pdf
 
 # Build artifacts
 *.o
