@@ -31,8 +31,3 @@ As stated in the problem statement, I **reviewed, edited, and wrote portions of 
 
 I researched similar works and assisted in writing the Challenges and Future Directions section to reflect the project owner's views for the project's future use. 
 
-The final paper represents a true collaborative effort, with my contributions integrated throughout to create a comprehensive, high-quality research publication.
-
----
-
-*This document is provided for transparency about the collaborative nature of research and my specific contributions to the AutoScan paper.*
