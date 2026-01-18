@@ -135,7 +135,7 @@ This research paper was developed by a team from Embry-Riddle Aeronautical Unive
 - **Charles Walker** - Department of Electrical Engineering and Computer Science
 - **Omar Ochoa** - Department of Electrical Engineering and Computer Science
 
-**My Contributions**: I reviewed, edited, and wrote significant portions of the paper, including methodology refinement, results analysis, and technical writing improvements.
+**My Contributions**: I reviewed and edited significant portions of the paper. I research similar works and assisted in writing the Challenges and Future Directions section. 
 
 ## Future Work
 
